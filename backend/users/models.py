@@ -6,19 +6,13 @@ from django.core.validators import (
     RegexValidator,
 )
 from rest_framework import status
-from .validators import validate_bad_value_in_username
 from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 
 class User(AbstractUser):
-    ADMIN = 'admin'
-    USER = 'user'
-    ROLE_CHOICES = (
-        (ADMIN, 'администратор'),
-        (USER, 'пользователь'),
-    )
-
+    email = models.EmailField(verbose_name='Почта', max_length=254, unique=True, blank=False)
     username = models.CharField(
+        verbose_name='Имя пользователя',
         unique=True,
         max_length=150,
         validators=[
@@ -27,24 +21,25 @@ class User(AbstractUser):
                 message='allows 150 characters or fewer @/./+/-/_ and digits',
                 code=status.HTTP_400_BAD_REQUEST,
             ),
-            validate_bad_value_in_username,
         ],
     )
-    email = models.EmailField(max_length=254, unique=True, blank=False)
-    role = models.CharField(
-        choices=ROLE_CHOICES,
-        default=USER,
-        verbose_name='Роль',
-        max_length=max(map(len, [role for role, _ in ROLE_CHOICES])),
-    )
-    bio = models.TextField(blank=True, verbose_name='Биография')
+    first_name = models.CharField(verbose_name='Имя', max_length=150)
+    last_name = models.CharField(verbose_name='Фамилия', max_length=150)
 
-    @property
-    def is_admin(self):
-        return self.role == self.ADMIN
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+
+    class Meta:
+        ordering = ['username']
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username
 
 
 class Follow(models.Model):
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -59,7 +54,13 @@ class Follow(models.Model):
     )
 
     class Meta:
+        ordering = ['user', 'following']
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
         constraints = [
             CheckConstraint(name='not_same', check=~Q(user=F('following'))),
-            UniqueConstraint(fields=['user', 'following'], name='unique_pair'),
+            UniqueConstraint(name='unique_pair', fields=['user', 'following']),
         ]
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.following}'
