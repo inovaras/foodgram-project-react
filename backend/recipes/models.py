@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name='Название', max_lengh=200)
+    name = models.CharField(verbose_name='Название', max_length=200)
     color = models.CharField(
         verbose_name='Цвет в HEX',
         max_length=7,
@@ -52,17 +52,23 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Teги'
+    )
+    author = models.ForeignKey(
+        User,
+        verbose_name='Автор рецепта',
+        on_delete=models.CASCADE
+    )
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
         verbose_name='Ингредиенты',
         through='RecipeIngredient'
     )
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Teги'
-    )
+
     favorited = models.ManyToManyField(
         User,
         related_name='favorited',
@@ -73,6 +79,27 @@ class Recipe(models.Model):
         related_name='shopping_card',
         verbose_name='Список покупок'
     )
+    name = models.CharField(verbose_name='Название рецепта', max_length=200)
+    image = models.ImageField(
+        upload_to='recipes/images',
+        null=True,
+        default=None
+    )
+    text = models.TextField(verbose_name='Описание')
+    cooking_time = models.PositiveIntegerField(
+        verbose_name='Время приготовления в минутах',
+        validators=[
+            MinValueValidator(1),
+        ]
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return f'Рецепт: {self.name}'
 
 
 class RecipeIngredient(models.Model):
