@@ -19,11 +19,7 @@ class Command(BaseCommand):
             Ingredient
         ]
         for csv_file, model in zip(csv_files, model_list):
-            print(Path(csv_path + csv_file).resolve())
             with open(csv_path + csv_file, encoding='UTF-8') as file:
                 reader = csv.reader(file)
                 model.objects.all().delete()
-                for row in reader:
-                    obg = model(name=row[0], measurement_unit=row[1])
-                    obg.save()
-
+                model.objects.bulk_create(model(name=row[0], measurement_unit=row[1]) for row in reader)

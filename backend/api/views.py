@@ -3,9 +3,7 @@ from djoser import views
 
 
 class UserViewSet(views.UserViewSet):
-    lookup_field = 'email'
-    search_fields = ('email',)
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ['get', 'post']
 
 
 
