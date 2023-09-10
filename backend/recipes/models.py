@@ -52,38 +52,11 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Teги'
-    )
+    name = models.CharField(verbose_name='Название рецепта', max_length=200)
     author = models.ForeignKey(
         User,
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        related_name='recipes',
-        verbose_name='Ингредиенты',
-        through='RecipeIngredient'
-    )
-
-    favorited = models.ManyToManyField(
-        User,
-        related_name='favorited',
-        verbose_name='Избранное'
-    )
-    shopping_cart = models.ManyToManyField(
-        User,
-        related_name='shopping_card',
-        verbose_name='Список покупок'
-    )
-    name = models.CharField(verbose_name='Название рецепта', max_length=200)
-    image = models.ImageField(
-        upload_to='recipes/images',
-        null=True,
-        default=None
     )
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.PositiveIntegerField(
@@ -92,9 +65,36 @@ class Recipe(models.Model):
             MinValueValidator(1),
         ]
     )
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    image = models.ImageField(
+        upload_to='recipes/images'
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Teги'
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes',
+        verbose_name='Ингредиенты',
+        through='RecipeIngredient'
+    )
+    favorited = models.ManyToManyField(
+        User,
+        related_name='favorited',
+        verbose_name='Избранное',
+        blank=True
+    )
+    shopping_cart = models.ManyToManyField(
+        User,
+        related_name='shopping_card',
+        verbose_name='Список покупок',
+        blank=True
+    )
 
     class Meta:
-        ordering = ['name']
+        ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 

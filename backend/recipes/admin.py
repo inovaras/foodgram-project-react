@@ -2,32 +2,36 @@ from django.contrib import admin
 from .models import Recipe, Tag, RecipeIngredient, Ingredient
 
 
+@admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'color', 'slug')
     list_filter = ('name', 'color', 'slug')
     empty_value_display = '-пусто-'
 
 
+@admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
-    list_filter = ('name', 'measurement_unit')
+    search_fields = ('name',)
     empty_value_display = '-пусто-'
 
 
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+    min_num = 1
+    extra = 0
+
+
+@admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'author')
-    list_filter = ('name', 'author')
+    list_display = ('name', 'author', 'favorite_count')
+    readonly_fields = ('favorite_count',)
+    list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
+    inlines = [RecipeIngredientInline]
 
 
-class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = ('ingredient', 'recipe')
-    list_filter = ('ingredient', 'recipe')
-    empty_value_display = '-пусто-'
-
-
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
-admin.site.register(Recipe, RecipeAdmin)
+    @admin.display(description="Добавлено в избранное")
+    def favorite_count(self, obj):
+        return obj.favorited.count()
 
