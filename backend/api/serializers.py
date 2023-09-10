@@ -16,3 +16,9 @@ class UserSerializer(djoser_serializers.UserSerializer):
         cur_user = self.context['request'].user
         return cur_user.is_authenticated and obj.following.filter(user=cur_user).exists()
 
+
+class FollowerSerializer(UserSerializer):
+    pass
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_subscribed')
