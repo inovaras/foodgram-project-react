@@ -55,6 +55,7 @@ class Recipe(models.Model):
     name = models.CharField(verbose_name='Название рецепта', max_length=200)
     author = models.ForeignKey(
         User,
+        related_name='recipes',
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE
     )
