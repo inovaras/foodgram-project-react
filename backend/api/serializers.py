@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from djoser import serializers as djoser_serializers
 from rest_framework import serializers
-from recipes.models import Recipe
+from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
 
 User = get_user_model()
 
@@ -42,3 +42,56 @@ class RecipeMinified(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ('id', 'name', 'color', 'slug')
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit')
+
+
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='ingredient.id')
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(source='ingredient.measurement_unit')
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'name', 'measurement_unit', 'amount',)
+
+
+class RecipeSerializerRead(serializers.ModelSerializer):
+    tags = TagSerializer(read_only=True, many=True)
+    author = UserSerializer(read_only=True)
+    ingredients = RecipeIngredientSerializer(read_only=True, many=True, source='recipeingredients')
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id',
+                  'tags',
+                  'author',
+                  'ingredients',
+                  'is_favorited',
+                  'is_in_shopping_cart',
+                  'name',
+                  'image',
+                  'text',
+                  'cooking_time'
+                  )
+
+    def get_is_favorited(self, obj):
+        return 1
+
+    def get_is_in_shopping_cart(self, obj):
+        return 2
+
+
+class RecipeSerializerWrite(serializers.ModelSerializer):
+    pass
