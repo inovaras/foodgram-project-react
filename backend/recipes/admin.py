@@ -4,14 +4,14 @@ from .models import Recipe, Tag, RecipeIngredient, Ingredient
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color', 'slug')
+    list_display = ('id', 'name', 'color', 'slug')
     list_filter = ('name', 'color', 'slug')
     empty_value_display = '-пусто-'
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit')
+    list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
     empty_value_display = '-пусто-'
 

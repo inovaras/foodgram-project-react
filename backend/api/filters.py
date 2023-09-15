@@ -19,6 +19,7 @@ class RecipeFilter(django_filters.FilterSet):
         to_field_name='slug',
         queryset=Tag.objects.all(),
     )
+
     class Meta:
         model = Recipe
         fields = ('is_favorited', 'is_in_shopping_cart', 'author', 'tags')
