@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Recipe, Tag, RecipeIngredient, Ingredient
+
+from .models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
 @admin.register(Tag)
@@ -30,8 +31,6 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     inlines = [RecipeIngredientInline]
 
-
     @admin.display(description="Добавлено в избранное")
     def favorite_count(self, obj):
         return obj.favorited.count()
-

@@ -1,11 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.core.validators import (
-    RegexValidator,
-    MinValueValidator
-)
+from django.db.models import UniqueConstraint
 from rest_framework import status
-from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 User = get_user_model()
 
@@ -39,8 +36,12 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(verbose_name='Название ингредиента', max_length=200)
-    measurement_unit = models.CharField(verbose_name='Измерение', max_length=200)
+    name = models.CharField(
+        verbose_name='Название ингредиента', max_length=200
+    )
+    measurement_unit = models.CharField(
+        verbose_name='Измерение', max_length=200
+    )
 
     class Meta:
         ordering = ['name']
@@ -57,41 +58,34 @@ class Recipe(models.Model):
         User,
         related_name='recipes',
         verbose_name='Автор рецепта',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     text = models.TextField(verbose_name='Описание')
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления в минутах',
         validators=[
             MinValueValidator(1),
-        ]
+        ],
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-    image = models.ImageField(
-        upload_to='recipes/images'
-    )
+    image = models.ImageField(upload_to='recipes/images')
     tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Teги'
+        Tag, related_name='recipes', verbose_name='Teги'
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
         verbose_name='Ингредиенты',
-        through='RecipeIngredient'
+        through='RecipeIngredient',
     )
     favorited = models.ManyToManyField(
-        User,
-        related_name='favorited',
-        verbose_name='Избранное',
-        blank=True
+        User, related_name='favorited', verbose_name='Избранное', blank=True
     )
     shopping_cart = models.ManyToManyField(
         User,
         related_name='shopping_card',
         verbose_name='Список покупок',
-        blank=True
+        blank=True,
     )
 
     class Meta:
@@ -104,13 +98,23 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, verbose_name='Рецепт', on_delete=models.CASCADE, related_name='recipeingredients')
-    ingredient = models.ForeignKey(Ingredient, verbose_name='Ингредиент', on_delete=models.CASCADE, related_name='recipeingredients')
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE,
+        related_name='recipeingredients',
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE,
+        related_name='recipeingredients',
+    )
     amount = models.PositiveIntegerField(
         verbose_name='Количество',
         validators=[
             MinValueValidator(1),
-        ]
+        ],
     )
 
     class Meta:
@@ -118,12 +122,10 @@ class RecipeIngredient(models.Model):
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
         constraints = [
-            UniqueConstraint(name='unique_pair_of_recipes', fields=['recipe', 'ingredient']),
+            UniqueConstraint(
+                name='unique_pair_of_recipes', fields=['recipe', 'ingredient']
+            ),
         ]
 
     def __str__(self):
         return f'В {self.recipe} - {self.ingredient}, {self.amount}'
-
-
-
-

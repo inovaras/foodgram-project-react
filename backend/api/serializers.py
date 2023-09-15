@@ -1,10 +1,11 @@
 import base64
+
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from djoser import serializers as djoser_serializers
 from rest_framework import serializers
-from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
-from django.core.files.base import ContentFile
 
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
 
@@ -25,11 +26,21 @@ class UserSerializer(djoser_serializers.UserSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_subscribed')
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+        )
 
     def get_is_subscribed(self, obj):
         cur_user = self.context['request'].user
-        return cur_user.is_authenticated and obj.following.filter(user=cur_user).exists()
+        return (
+            cur_user.is_authenticated
+            and obj.following.filter(user=cur_user).exists()
+        )
 
 
 class FollowerSerializer(UserSerializer):
@@ -38,7 +49,16 @@ class FollowerSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        fields = (
+            'id',
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+        )
 
     def get_recipes(self, obj):
         queryset = obj.recipes.all()
@@ -73,40 +93,57 @@ class IngredientSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializerRead(serializers.ModelSerializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
-    measurement_unit = serializers.CharField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit'
+    )
+
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'name', 'measurement_unit', 'amount',)
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'amount',
+        )
 
 
 class RecipeSerializerRead(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializerRead(read_only=True, many=True, source='recipeingredients')
+    ingredients = RecipeIngredientSerializerRead(
+        read_only=True, many=True, source='recipeingredients'
+    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = ('id',
-                  'tags',
-                  'author',
-                  'ingredients',
-                  'is_favorited',
-                  'is_in_shopping_cart',
-                  'name',
-                  'image',
-                  'text',
-                  'cooking_time'
-                  )
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
 
     def get_is_favorited(self, recipe):
         cur_user = self.context['request'].user
-        return cur_user.is_authenticated and recipe.favorited.filter(id=cur_user.id).exists()
+        return (
+            cur_user.is_authenticated
+            and recipe.favorited.filter(id=cur_user.id).exists()
+        )
 
     def get_is_in_shopping_cart(self, recipe):
         cur_user = self.context['request'].user
-        return cur_user.is_authenticated and recipe.shopping_cart.filter(id=cur_user.id).exists()
+        return (
+            cur_user.is_authenticated
+            and recipe.shopping_cart.filter(id=cur_user.id).exists()
+        )
 
 
 class RecipeIngredientSerializerWrite(serializers.ModelSerializer):
@@ -114,7 +151,7 @@ class RecipeIngredientSerializerWrite(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount',)
+        fields = ('id', 'amount')
 
 
 class RecipeSerializerWrite(serializers.ModelSerializer):
@@ -123,13 +160,24 @@ class RecipeSerializerWrite(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = ('ingredients', 'tags', 'image', 'name', 'text', 'cooking_time')
+        fields = (
+            'ingredients',
+            'tags',
+            'image',
+            'name',
+            'text',
+            'cooking_time',
+        )
 
     def validate_ingredients(self, ingredients):
         if not ingredients:
-            raise serializers.ValidationError('Нельзя создать рецепт без ингредиентов')
+            raise serializers.ValidationError(
+                'Нельзя создать рецепт без ингредиентов'
+            )
 
-        if len(set(ingredient['id'] for ingredient in ingredients)) != len(ingredients):
+        if len(set(ingredient['id'] for ingredient in ingredients)) != len(
+            ingredients
+        ):
             raise serializers.ValidationError('Нельзя дублировать ингредиенты')
         return ingredients
 
@@ -138,7 +186,7 @@ class RecipeSerializerWrite(serializers.ModelSerializer):
             RecipeIngredient(
                 recipe=recipe,
                 ingredient=ingredient['id'],
-                amount=ingredient['amount']
+                amount=ingredient['amount'],
             )
             for ingredient in ingredients
         )
@@ -161,7 +209,6 @@ class RecipeSerializerWrite(serializers.ModelSerializer):
             recipe.ingredients.clear()
             self.make_ingredients(recipe, ingredients)
         return recipe
-
 
     def to_representation(self, instance):
         return RecipeSerializerRead(instance, context=self.context).data

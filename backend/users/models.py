@@ -1,14 +1,14 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import (
-    RegexValidator,
-)
-from rest_framework import status
+from django.core.validators import RegexValidator
+from django.db import models
 from django.db.models import CheckConstraint, F, Q, UniqueConstraint
+from rest_framework import status
 
 
 class User(AbstractUser):
-    email = models.EmailField(verbose_name='Почта', max_length=254, unique=True, blank=False)
+    email = models.EmailField(
+        verbose_name='Почта', max_length=254, unique=True, blank=False
+    )
     username = models.CharField(
         verbose_name='Имя пользователя',
         unique=True,
@@ -37,7 +37,6 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
