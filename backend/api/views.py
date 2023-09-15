@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny
 from users.models import Follow
 from recipes.models import Tag, Ingredient, Recipe
 from .serializers import FollowerSerializer, TagSerializer, IngredientSerializer, RecipeSerializerRead, RecipeSerializerWrite
-from .filters import IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 from .permissions import IsAuthorOrAdminOrReadOnly
 
 
@@ -82,6 +82,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrAdminOrReadOnly,)
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
