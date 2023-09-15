@@ -86,11 +86,13 @@ class RecipeSerializerRead(serializers.ModelSerializer):
                   'cooking_time'
                   )
 
-    def get_is_favorited(self, obj):
-        return 1
+    def get_is_favorited(self, recipe):
+        cur_user = self.context['request'].user
+        return cur_user.is_authenticated and recipe.favorited.filter(id=cur_user.id).exists()
 
-    def get_is_in_shopping_cart(self, obj):
-        return 2
+    def get_is_in_shopping_cart(self, recipe):
+        cur_user = self.context['request'].user
+        return cur_user.is_authenticated and recipe.shopping_cart.filter(id=cur_user.id).exists()
 
 
 class RecipeSerializerWrite(serializers.ModelSerializer):
