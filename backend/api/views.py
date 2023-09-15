@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from djoser import views
 from rest_framework.decorators import action
 from rest_framework import viewsets
@@ -6,7 +7,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db.models import Sum
 
 from users.models import Follow
 from recipes.models import Tag, Ingredient, Recipe
@@ -139,3 +141,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             raise ValidationError('Рецепта нет в избранном')
         recipe.favorited.remove(request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        permission_classes=(IsAuthenticated,)
+    )
+    def download_shopping_cart(self, request):
+        ingredients = Ingredient.objects.filter(recipes__shopping_cart=request.user).annotate(total=Sum('recipeingredients__amount'))
+        lines = [f'{i.name}: {i.total} {i.measurement_unit}\n' for i in ingredients]
+
+        return HttpResponse(
+            lines,
+            content_type='text/plain',
+            headers={
+                'Content-Disposition': (
+                    'attachment; filename="shopping_cart.txt"'
+                ),
+            },
+        )
