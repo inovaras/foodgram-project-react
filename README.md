@@ -1,5 +1,5 @@
 # praktikum_new_diplom
-Адрес сервера, на котором запущен проект:  https://allrecipes.serveblog.net/recipes,
+Адрес сервера, на котором запущен проект:  https://allrecipes.serveblog.net,
 
 Логин и пароль администратора: 
 email: admin@mail.ru,
