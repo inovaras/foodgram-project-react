@@ -1,3 +1,5 @@
+from enum import IntEnum
+
 import django_filters
 
 from recipes.models import Ingredient, Recipe, Tag
@@ -9,6 +11,11 @@ class IngredientFilter(django_filters.FilterSet):
     class Meta:
         model = Ingredient
         fields = ('name',)
+
+
+class FilterFlag(IntEnum):
+    TRUE = 1
+    FALSE = 0
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -28,12 +35,12 @@ class RecipeFilter(django_filters.FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         cur_user = self.request.user
-        if value == 1 and cur_user.is_authenticated:
+        if value == FilterFlag.TRUE and cur_user.is_authenticated:
             return queryset.filter(favorited=cur_user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         cur_user = self.request.user
-        if value == 1 and cur_user.is_authenticated:
+        if value == FilterFlag.TRUE and cur_user.is_authenticated:
             return queryset.filter(shopping_cart=cur_user)
         return queryset
